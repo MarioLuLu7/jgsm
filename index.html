@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>扫码</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .video-js {
+        width: 50vw;
+        height: 50vh;
+      }
+      .scan {
+        position: fixed;
+        top: 100px;
+        left: 10px;
+        z-index: 9999;
+      }
+      .play {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 9999;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <button class="scan" @click="useVideo">扫码</button>
+      <button class="play" @click="play" id="play">播放</button>
+
+      <video
+        class="video-js"
+        ref="videoRef"
+        playsinline="true"
+        muted="true"
+        autoplay="true"
+        ></video>
+    </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.45/vue.global.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.15.0/vconsole.min.js"></script>
+    <script>
+      new window.VConsole();
+
+      const { createApp, ref, onMounted } = Vue;
+
+      createApp({
+        setup() {
+          const videoRef = ref();
+
+          const getUserMedia = (constraints, success, error) => {
+            if (navigator.mediaDevices.getUserMedia) {
+              //最新的标准API
+              navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+            } else if (navigator.webkitGetUserMedia) {
+              //webkit核心浏览器
+              navigator.webkitGetUserMedia(constraints, success, error);
+            } else if (navigator.mozGetUserMedia) {
+              //firfox浏览器
+              navigator.mozGetUserMedia(constraints, success, error);
+            } else if (navigator.getUserMedia) {
+              //旧版API
+              navigator.getUserMedia(constraints, success, error);
+            }
+          };
+
+          const success = (stream) => {
+            //兼容webkit核心浏览器
+            videoRef.value.srcObject = stream;
+            // setTimeout(() => {
+            //   document.getElementById("play").click();
+            // }, Math.random(3000));
+          };
+
+          const play = () => {
+            videoRef.value.play();
+          };
+
+          const error = (error) => {
+            console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+          };
+
+          const useVideo = () => {
+            navigator.getUserMedia =
+              navigator.getUserMedia ||
+              navigator.webkitGetUserMedia ||
+              navigator.mozGetUserMedia ||
+              navigator.msGetUserMedia ||
+              window.getUserMedia ||
+              navigator.mediaDevices.getUserMedia;
+            if (navigator.getUserMedia) {
+              getUserMedia({ video: { width: 270, height: 150 }, facingMode: "environment" }, success, error);
+            } else {
+              alert("不支持访问用户媒体");
+            }
+          };
+
+          // onMounted(() => {
+          //   useVideo();
+          // });
+
+          return {
+            videoRef,
+            useVideo,
+            play
+          };
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
